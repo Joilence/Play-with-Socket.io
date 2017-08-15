@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+  <title>Play with socket.io</title>
+</head>
+<body>
+  <div id="index-app">
+    <h1>Play with Socket.io</h1>
+    <div id="user-info" v-if="isLogin">
+      <div>Username: {{ username }}</div>
+      <div>RoomID: {{ roomId }}</div>
+      <div id="chat-area">
+
+      </div>
+      <input v-model="inputMessage" id="input-msg" placeholder="input message" />
+      <button id="send-btn" @click="sendMessage">send</button>
+      <button id="quit" @click="logout">quit</button>
+    </div>
+    <div id="login" v-else>
+      <input v-model="username" type="username" placeholder="username" />
+      <input v-model="roomId" type="roomId" placeholder="roomid" />
+      <button id="login-btn" @click="login">Login</button>
+    </div>
+  </div>
+</body>
+
+<script>
+  let indexApp = new Vue({
+    el: '#index-app',
+    data: () => ({
+      username: '',
+      roomId: '',
+      isLogin: false,
+      // chat
+      messages: [],
+      inputMessage: '',
+      io: null
+    }),
+    methods: {
+      login: function (event) {
+        // connect to socket server
+        this.io = new io('http://localhost:3000', {
+          query: {
+            username: this.username
+          }
+        });
+        this.io.on('connect', () => {
+          this.isLogin = true;
+          // join the room
+          this.joinRoom(this.roomId);
+          // add new msg to view
+          this.io.on('msg', (msg) => {
+            this.messages.push(msg);
+          });
+          //
+          this.io.on('disconnect', () => {
+            if (this.isLogin === true) {
+              this.isLogin = false;
+              delete this.io;
+            }
+          })
+        })
+      },
+
+      joinRoom: function (roomId) {
+        this.io.emit('join', roomId);
+      },
+
+      sendMessage: function () {
+        this.io.emit('msg', this.inputMessage);
+        this.messages.push(this.inputMessage);
+      },
+
+      leaveRoom: function () {
+        this.io.emit('leave', this.roomId);
+        console.log('user leave room');
+      },
+
+      logout: function () {
+        this.leaveRoom();
+        delete this.io;
+        this.isLogin = false;
+        console.log('server disconnected.')
+      }
+    }
+  })
+</script>
+</html>
