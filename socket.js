@@ -17,7 +17,7 @@ export default class IO {
           roomInfo[roomId] = [];
         } else {
           // notify other users in the room
-          server.to(roomId).emit('system', username + ' join the room.', roomInfo[roomId]);
+          this.server.to(roomId).emit('system', username + ' join the room.', roomInfo[roomId]);
         }
         roomInfo[roomId].push(username);
         socket.join(roomId);
@@ -31,7 +31,7 @@ export default class IO {
           roomInfo[roomId].splice(index, 1);
         }
         socket.leave(roomId);
-        io.to(roomId).emit('system', username + ' left the room.', roomInfo[roomId]);
+        this.server.to(roomId).emit('system', username + ' left the room.', roomInfo[roomId]);
         console.log(username + ' left ' + roomId + '.');
       });
 
@@ -46,12 +46,12 @@ export default class IO {
         if (roomInfo[roomId].indexOf(user) === -1) {
           return false;
         }
-        io.to(roomId).emit('msg', username, msg);
+        this.server.to(roomId).emit('msg', username, msg);
       });
 
       socket.on('emo', function (emo) {
         //TODO: if user in the room
-        io.to(roomId).emit('emo', username, emo);
+        this.server.to(roomId).emit('emo', username, emo);
       })
     });
   }
