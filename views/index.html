@@ -17,7 +17,7 @@
       <div>Username: {{ username }}</div>
       <div>RoomID: {{ roomId }}</div>
       <div id="chat-area">
-
+        <div v-for="msg in messages" class="msg-cell">{{ msg }}</div>
       </div>
       <input v-model="inputMessage" id="input-msg" placeholder="input message" />
       <button id="send-btn" @click="sendMessage">send</button>
@@ -41,51 +41,63 @@
       // chat
       messages: [],
       inputMessage: '',
-      io: null
+      client: null
     }),
     methods: {
+
       login: function (event) {
+
+        //TODO: check input of username/roomID
+
         // connect to socket server
-        this.io = new io('http://localhost:3000', {
+        this.client = new io('http://localhost:3000', {
           query: {
-            username: this.username
+            username: this.username,
+            roomId: this.roomId
           }
         });
-        this.io.on('connect', () => {
+        this.client.on('connect', () => {
           this.isLogin = true;
           // join the room
           this.joinRoom(this.roomId);
+          console.log('io.on.connect: join room');
           // add new msg to view
-          this.io.on('msg', (msg) => {
+          this.client.on('msg', (msg) => {
             this.messages.push(msg);
+            console.log('io.on.connect: send msg');
           });
           //
-          this.io.on('disconnect', () => {
+          this.client.on('disconnect', () => {
             if (this.isLogin === true) {
+              console.log('io.on.connect: disconnected.')
               this.isLogin = false;
-              delete this.io;
+              delete this.client;
             }
           })
+          console.log('io.on.connect: connected');
         })
+        console.log('connected.')
       },
 
       joinRoom: function (roomId) {
-        this.io.emit('join', roomId);
+        this.client.emit('join', roomId);
+        console.log('join room ' + roomId);
       },
 
       sendMessage: function () {
-        this.io.emit('msg', this.inputMessage);
-        this.messages.push(this.inputMessage);
+        this.client.emit('msg', this.inputMessage);
+        // this.messages.push(this.inputMessage);
+        console.log('send msg');
       },
 
       leaveRoom: function () {
-        this.io.emit('leave', this.roomId);
+        this.client.emit('leave', this.roomId);
         console.log('user leave room');
       },
 
       logout: function () {
         this.leaveRoom();
-        delete this.io;
+        delete this.client;
         this.isLogin = false;
         console.log('server disconnected.')
       }
