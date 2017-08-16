@@ -59,16 +59,15 @@
           this.isLogin = true;
           // join the room
           this.joinRoom();
-          console.log('join room ' + this.roomId);
           // add new msg to view
           this.client.on('msg', (msg) => {
             this.messages.push(msg);
             console.log('receive msg: ' + msg);
           });
-          //
           this.client.on('disconnect', () => {
             if (this.isLogin === true) {
               console.log('server disconnected accidentally.')
+              this.client.close();
               this.isLogin = false;
               delete this.client;
             }
@@ -94,9 +93,10 @@
       },
 
       logout: function () {
-        this.leaveRoom();
-        delete this.client;
         this.isLogin = false;
+        this.leaveRoom();
+        this.client.close();
+        delete this.client;
         console.log('server disconnected.')
       }
     }
