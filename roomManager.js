@@ -3,13 +3,8 @@ class RoomManager {
         this.roomPool = {};
     }
 
-    addUserTo(info) {
-        if (!roompool[info.roomId]) {
-            roomPool[info.roomId] = [];
-        } else {
-            roomPool[info.roomId].push(info.userId)
-        }
-    }
+    userJoin() {}
+    userLeave() {}
 }
 
 export default new RoomManager();

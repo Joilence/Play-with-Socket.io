@@ -35,53 +35,51 @@
   let indexApp = new Vue({
     el: '#index-app',
     data: () => ({
+      // param
+      isLogin: false,
+      // chat area
+      messages: [],
+      // input model
       username: '',
       roomId: '',
-      isLogin: false,
-      // chat
-      messages: [],
       inputMessage: '',
+      // socket
       client: null
     }),
     methods: {
 
-      login: function (event) {
-
-        //TODO: check input of username/roomID
-
+      login: function () {
         // connect to socket server
         this.client = new io('http://localhost:3000', {
           query: {
-            username: this.username,
-            roomId: this.roomId
+            username: this.username
           }
         });
         this.client.on('connect', () => {
           this.isLogin = true;
           // join the room
-          this.joinRoom(this.roomId);
-          console.log('io.on.connect: join room');
+          this.joinRoom();
+          console.log('join room ' + this.roomId);
           // add new msg to view
           this.client.on('msg', (msg) => {
             this.messages.push(msg);
-            console.log('io.on.connect: send msg');
+            console.log('receive msg: ' + msg);
           });
           //
           this.client.on('disconnect', () => {
             if (this.isLogin === true) {
-              console.log('io.on.connect: disconnected.')
+              console.log('server disconnected accidentally.')
               this.isLogin = false;
               delete this.client;
             }
           })
-          console.log('io.on.connect: connected');
+          console.log('server connected');
         })
-        console.log('connected.')
       },
 
-      joinRoom: function (roomId) {
-        this.client.emit('join', roomId);
-        console.log('join room ' + roomId);
+      joinRoom: function () {
+        this.client.emit('join', this.roomId);
+        console.log('join room ' + this.roomId);
       },
 
       sendMessage: function () {

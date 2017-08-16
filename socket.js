@@ -22,15 +22,15 @@ class IO {
         console.log(username + ' left ' + roomId + '.');
       });
 
-      socket.on('disconnect', function () {
+      socket.on('disconnect', () => {
         console.log(username + ' disconnected.');
       });
 
-      socket.on('msg', function (msg) {
+      socket.on('msg', (msg) => {
         this.server.to(inRoom).emit('msg', username + ': ' + msg);
       });
 
-      socket.on('emo', function (emo) {
+      socket.on('emo', (emo) => {
         this.server.to(inRoom).emit('emo', username + '- ' + emo);
       })
     });
